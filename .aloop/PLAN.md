@@ -6,7 +6,7 @@ Base branch: `master`
 
 ## Milestone 1 - Real backend foundation
 
-- [ ] B1 - Scaffold Tauri 2 Rust backend and app contracts
+- [x] B1 - Scaffold Tauri 2 Rust backend and app contracts
   - Size: M
   - Effort tier: medium
   - Dependencies: none
@@ -19,6 +19,7 @@ Base branch: `master`
   - Dependencies: B1
   - Parallel-ok: false
   - Perf notes: iterative traversal, bounded metadata work, top-N aggregation for visualization, avoid retaining raw per-file detail beyond what the UI needs.
+  - Status: deferred until usage returns above CRITICAL; task is L/high and should not be launched in the current band.
 
 - [ ] B3 - Connect frontend to backend with mock fallback
   - Size: M
