@@ -2,17 +2,22 @@
   "name": "fileshousing",
   "version": "0.1.0",
   "devDependencies": {
+    "@tauri-apps/cli": "^2",
     "typescript": "~5.6.3",
     "vite": "^6.0.7"
   },
   "private": true,
   "scripts": {
     "dev": "vite",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview"
   },
   "type": "module",
   "dependencies": {
-    "@fontsource-variable/space-grotesk": "^5.2.10"
+    "@fontsource-variable/space-grotesk": "^5.2.10",
+    "@tauri-apps/api": "^2"
   }
 }

@@ -25,12 +25,69 @@ export interface FsNode {
   vis?: boolean;
 }
 
-
 export interface Disk {
   letter: string;
   label: string;
   totalBytes: number;
   root: FsNode; // used bytes = root.size
+}
+
+/** JSON-safe node shape returned by the Rust backend. */
+export interface BackendFsNode {
+  id: number;
+  name: string;
+  path: string;
+  kind: 'dir' | 'file' | 'rest';
+  cat: Cat;
+  /** bytes */
+  size: number;
+  /** days since last modification (dirs: most recent descendant) */
+  days: number;
+  /** total file count (files: 1) */
+  count: number;
+  parentId: number | null;
+  children?: BackendFsNode[];
+}
+
+/** JSON-safe disk shape returned by the Rust backend. */
+export interface BackendDisk {
+  letter: string;
+  label: string;
+  totalBytes: number;
+  root: BackendFsNode;
+}
+
+export interface ScanRoot {
+  id: string;
+  name: string;
+  path: string;
+  totalBytes: number;
+}
+
+function hydrateNode(node: BackendFsNode, parent: FsNode | null): FsNode {
+  const out: FsNode = {
+    id: node.id,
+    name: node.name,
+    kind: node.kind,
+    cat: node.cat,
+    size: node.size,
+    days: node.days,
+    count: node.count,
+    parent,
+  };
+  if (node.children?.length) {
+    out.children = node.children.map(child => hydrateNode(child, out));
+  }
+  return out;
+}
+
+export function hydrateDisk(disk: BackendDisk): Disk {
+  return {
+    letter: disk.letter,
+    label: disk.label,
+    totalBytes: disk.totalBytes,
+    root: hydrateNode(disk.root, null),
+  };
 }
 
 export interface Filters {
