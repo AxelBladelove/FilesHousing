@@ -12,6 +12,7 @@
 | 0 | 2026-07-03T14:42:48-04:00 | CRUISE | 32.0 | 10.0 | initialized remote-mode plan and agents | launch B1 |
 | 1 | 2026-07-03T14:58:40-04:00 | CRITICAL | 75.0 | 17.0 | integrated B1 via PR #1; Tauri scaffold and backend contracts landed | defer B2 until usage resets |
 | 2 | 2026-07-03T15:33:46-04:00 | WRAP | 92.0 | 19.0 | heartbeat resumed but usage was still above WRAP threshold | reschedule after reset |
+| 3 | 2026-07-03T19:50:45-04:00 | CRUISE | ~0.0 | 21.0 | launched B2 worktree thread; usage snapshot reported likely_reset true | collect B2 result |
 
 ## HANDOFF 2026-07-03T14:58:40-04:00
 
@@ -30,3 +31,9 @@
 - Built this run: nothing new; only refreshed usage and preserved the resumable state.
 - In flight: none.
 - Next step on resume: refresh usage again; if session usage is below 40%, launch B2 at high effort from current `master` in remote mode.
+
+## IN FLIGHT 2026-07-03T19:50:45-04:00
+
+- B2 launched in a Codex worktree thread from `master`.
+- Usage note: usage script returned session 100% with `likely_reset: true` and reset time passed; treated as refreshed CRUISE per aloop budget rules.
+- Next step: collect B2 result block, review diff, then push/PR/merge if checks pass.
