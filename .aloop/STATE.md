@@ -18,5 +18,6 @@
 - Usage: session 75.0% (resets in 270 min), weekly 17.0% (resets in 9148 min).
 - Built this run: B1 scaffolded Tauri 2 backend, Rust command/model boundaries, JSON-safe frontend DTOs, backend invoke wrapper, Tauri scripts/deps, and ignored Cargo target output.
 - Integrated remotely: PR #1 `task(B1): scaffold Tauri backend contracts`, merged at commit `55db9ae`.
-- In flight: none required for integration; B1 worktree thread may still show active but its branch was already merged.
+- Preserved reference work: `.aloop/reviews/engine-tauri-wip.patch` contains an earlier unmerged real scanner/action attempt from `task/engine-tauri`; B2 should mine it for scanner/category/recycle ideas, not apply it blindly because it predates the current UI and B1 contract.
+- In flight: none.
 - Next step on resume: launch B2 from current `master` after refreshing usage; run it at high effort if band allows, otherwise keep deferring.
