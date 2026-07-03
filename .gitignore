@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.aloop/out/
+.worktrees/
+.claude/
+src-tauri/target/
