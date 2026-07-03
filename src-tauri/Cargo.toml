@@ -1,0 +1,20 @@
+[package]
+name = "fileshousing"
+version = "0.1.0"
+description = "FilesHousing desktop backend"
+authors = ["FilesHousing"]
+edition = "2021"
+
+[lib]
+name = "fileshousing_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+tauri = { version = "2", features = [] }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = ["Win32_Storage_FileSystem"] }
