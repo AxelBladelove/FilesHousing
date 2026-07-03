@@ -1,17 +1,21 @@
-import type { FsNode, Rect } from './types';
+import type { FsNode } from './types';
 
 /**
- * Squarified treemap layout with proportional world-space padding, so the
- * "streets between districts" look identical at every zoom depth.
- * Rects are cached on the node — layout runs once per node, lazily.
+ * Ground-plan layout for the city: squarified treemap in world coordinates,
+ * with proportional gaps as streets. Computed lazily per district, cached
+ * forever (world coords are zoom-independent).
  */
 
-const MAX_MAP_CHILDREN = 34;
-const MIN_SHARE = 0.0035; // children below 0.35% of parent fold into the rest node
+export interface Plan { x: number; y: number; w: number; h: number; }
+
+export const WORLD = 1100; // root city plan is WORLD x WORLD
+
+const MAX_MAP_CHILDREN = 26;
+const MIN_SHARE = 0.005; // children below 0.5% of parent fold into the rest pad
 
 let restId = -1;
 
-/** Children drawn on the map: top-N plus one aggregated 'rest' block. */
+/** Children shown on the map: top-N plus one aggregated 'rest' node. */
 export function mapChildren(node: FsNode): FsNode[] {
   if (node.mapChildren) return node.mapChildren;
   const kids = node.children ?? [];
@@ -33,36 +37,43 @@ export function mapChildren(node: FsNode): FsNode[] {
   return shown;
 }
 
-/** Lay out (and cache) the map children of `node` inside its world rect. */
-export function layoutChildren(node: FsNode, rect: Rect): FsNode[] {
+/** Lay out (and cache) the map children of `node` inside its plan rect. */
+export function layoutChildren(node: FsNode): FsNode[] {
   const kids = mapChildren(node);
   if (kids.length === 0) return kids;
-  if (kids[0].rect) return kids; // already laid out (rects are world-stable)
+  if (kids[0].plan) return kids;
 
-  const pad = Math.min(rect.w, rect.h) * 0.035;
-  const band = pad * 2.6; // top strip reserved for the district label
-  const inner: Rect = {
-    x: rect.x + pad, y: rect.y + band,
-    w: Math.max(1e-6, rect.w - pad * 2),
-    h: Math.max(1e-6, rect.h - band - pad),
+  const rect = node.plan!;
+  const street = Math.min(rect.w, rect.h) * 0.045;
+  const inner: Plan = {
+    x: rect.x + street, y: rect.y + street,
+    w: Math.max(1e-6, rect.w - street * 2),
+    h: Math.max(1e-6, rect.h - street * 2),
   };
   const rects = squarify(kids.map(k => k.size), inner);
-  const gap = Math.min(inner.w, inner.h) * 0.012;
+  const gap = Math.min(inner.w, inner.h) * 0.024;
   for (let i = 0; i < kids.length; i++) {
     const r = rects[i];
-    const gx = Math.min(gap, r.w * 0.18), gy = Math.min(gap, r.h * 0.18);
-    kids[i].rect = { x: r.x + gx / 2, y: r.y + gy / 2, w: r.w - gx, h: r.h - gy };
+    const gx = Math.min(gap, r.w * 0.22), gy = Math.min(gap, r.h * 0.22);
+    kids[i].plan = { x: r.x + gx / 2, y: r.y + gy / 2, w: r.w - gx, h: r.h - gy };
   }
   return kids;
 }
 
-/** Classic squarified treemap. `areas` must be sorted descending. */
-function squarify(areas: number[], rect: Rect): Rect[] {
+/** Building height in world units: log-scaled so towers stay legible. */
+export function buildingHeight(n: FsNode): number {
+  const MB = 1024 ** 2;
+  const h = 9 + Math.max(0, Math.log2(n.size / (25 * MB))) * 8.5;
+  return Math.min(118, h);
+}
+
+/** Classic squarified treemap. `areas` assumed sorted descending. */
+function squarify(areas: number[], rect: Plan): Plan[] {
   const total = areas.reduce((a, b) => a + b, 0) || 1;
   const scale = (rect.w * rect.h) / total;
   const scaled = areas.map(a => Math.max(a * scale, 1e-9));
 
-  const out: Rect[] = new Array(areas.length);
+  const out: Plan[] = new Array(areas.length);
   let x = rect.x, y = rect.y, w = rect.w, h = rect.h;
   let row: number[] = [], rowIdx: number[] = [], i = 0;
 
@@ -75,7 +86,7 @@ function squarify(areas: number[], rect: Rect): Rect[] {
 
   const layoutRow = () => {
     const s = row.reduce((a, b) => a + b, 0);
-    const horiz = w < h; // lay the row along the shorter side
+    const horiz = w < h;
     const side = horiz ? w : h;
     const thick = s / side;
     let off = 0;

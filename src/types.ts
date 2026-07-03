@@ -18,14 +18,13 @@ export interface FsNode {
   children?: FsNode[];
   /** children shown on the map: top-N by size plus an aggregated 'rest' node */
   mapChildren?: FsNode[];
-  /** world-space rect, cached once computed (stable across zooms) */
-  rect?: Rect;
+  /** ground-plan rect in world coords, cached once computed (stable across zooms) */
+  plan?: { x: number; y: number; w: number; h: number };
   /** visibility generation + result for the active filter/search pass */
   visGen?: number;
   vis?: boolean;
 }
 
-export interface Rect { x: number; y: number; w: number; h: number; }
 
 export interface Disk {
   letter: string;

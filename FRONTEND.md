@@ -15,16 +15,24 @@ lockfiles.
 
 ## What's implemented
 
-- **Disk select** → **scan progress** → **storage map** flow.
-- Storage map: zoomable "city" treemap (hand-rolled Canvas2D, culling + LOD, world-space
-  layout cached per node — pan/zoom is camera-only, no relayout). Districts = folders,
-  blocks = files; labels appear per level of detail; small children fold into a
-  "+N smaller items" block.
-- Interactions: drag pan, wheel zoom-to-cursor, click → details panel, double-click →
-  animated fly-to + breadcrumbs, Esc clears.
-- Layers: **Type** (category colors) and **Age** (heat: fresh blue → untouched amber).
-- Search + filters (min size, last modified, type): non-matching areas dim in place —
-  spatial context is never lost.
+- **Disk select** (cards with live mini-skylines of each disk's real data) →
+  **scan-as-construction** (the city physically builds while the counter runs) →
+  **the storage city**.
+- The city: a night-time isometric metropolis, hand-rolled Canvas2D. Districts =
+  folder plates, towers = files (height = log size), streets = treemap gaps. Cast
+  shadows, edge fog, ground grid, street-sign district labels, painter-sorted boxes,
+  silhouette-accurate hit-testing (towers included). Culling + LOD: per-frame cost
+  tracks visible nodes, not tree size; redraws only on change.
+- Interactions: drag pan, wheel zoom-to-cursor, hover → giant kinetic readout,
+  click → details panel + light beam on the selection, double-click → camera fly-to
+  with breadcrumbs, minimap (click to jump), Esc clears.
+- **Ctrl+K command palette** (Raycast-style, per the brief): search files/folders and
+  jump to them; quick actions (layer toggle, filters). While typing, non-matching
+  buildings power down to dark slabs — matches stay lit.
+- Layers: **Type** (category colors) and **Age** (heat: fresh blue → untouched amber),
+  reflected in the minimap.
+- Filters (min size, last modified, type): the city goes dark where the filter says
+  no — spatial context is never lost.
 - Details panel: size, % of disk, file count/age, largest children, actions.
 - Cleanup queue: add/remove, reclaimable total, safe-by-default copy (recycle bin
   first). Execution is stubbed pending the backend.
