@@ -98,7 +98,7 @@ fn validate_existing_path(raw: &str) -> Result<ValidPath, String> {
     if trimmed.is_empty() {
         return Err("Path is empty.".to_string());
     }
-    if trimmed.contains("#rest") {
+    if trimmed.ends_with("#rest") {
         return Err("Synthetic grouped items cannot be used for file actions.".to_string());
     }
 

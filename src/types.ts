@@ -66,6 +66,24 @@ export interface ScanRoot {
   totalBytes: number;
 }
 
+export interface CleanupPreviewItem {
+  path: string;
+  estimatedBytes: number;
+}
+
+export interface CleanupPreviewSkipped {
+  path: string;
+  reason: string;
+}
+
+export interface CleanupPreviewSummary {
+  reviewedCount: number;
+  acceptedCount: number;
+  skippedCount: number;
+  reclaimableBytes: number;
+  skipped: CleanupPreviewSkipped[];
+}
+
 function hydrateNode(node: BackendFsNode, parent: FsNode | null): FsNode {
   const out: FsNode = {
     id: node.id,
