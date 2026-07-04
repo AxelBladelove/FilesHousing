@@ -5,7 +5,7 @@
 - Base branch: `master`
 - Baseline usage: session 32.0%, weekly 10.0%, stale 0.2 min, source codex-session-log
 - Band: ECONOMY
-- Next step: collect B4 result from pending worktree `local:2c112ed7-72c1-4c5e-9293-1cfbcfece7d0`.
+- Next step: run V1 final verification after usage resets enough for a medium task.
 
 | iter | time | band | session% | weekly% | did | next |
 |---|---|---:|---:|---:|---|---|
@@ -17,6 +17,7 @@
 | 5 | 2026-07-04T01:02:11-04:00 | ECONOMY | ~0.0 | 34.0 | launched B3 worktree thread; usage snapshot was stale but `likely_reset: true`, so downgraded to ECONOMY | collect B3 result |
 | 6 | 2026-07-04T01:36:45-04:00 | CRUISE | 38.0 | 40.0 | integrated B3 via PR #3; frontend now lists roots, scans selected root once, caches result, and preserves paths | launch B4 |
 | 7 | 2026-07-04T01:40:14-04:00 | ECONOMY | 47.0 | 41.0 | launched B4 worktree thread for safe backend actions and Explorer integration | collect B4 result |
+| 8 | 2026-07-04T02:13:18-04:00 | ECONOMY | 69.0 | 45.0 | integrated B4 via PR #4; safe action validation, Explorer opening, and cleanup preview landed | defer V1 until session reset |
 
 ## HANDOFF 2026-07-03T14:58:40-04:00
 
@@ -73,3 +74,12 @@
 - Pending worktree id: `local:2c112ed7-72c1-4c5e-9293-1cfbcfece7d0`.
 - Usage: session 47.0% (ECONOMY, resets in 261 min), weekly 41.0% (resets in 8507 min), stale 0.1 min.
 - Next step: collect B4 result block, review diff, run checks, then push/PR/merge if clean.
+
+## INTEGRATED 2026-07-04T02:13:18-04:00
+
+- B4 completed in worktree thread `019f2ba4-3746-7b23-af9a-a618ff0a3079`.
+- Integrated remotely: PR #4 `task(B4): implement safe backend actions`, merged at commit `59c530f`.
+- Verification: `cargo fmt --check`, `cargo check`, `bun run build`, and `cargo test --lib --no-run` passed. `cargo test --lib -- --nocapture` still fails to launch the generated Windows GNU/Tauri test executable with `STATUS_ENTRYPOINT_NOT_FOUND`, matching the existing environment limitation.
+- Cleanup: B4 thread archived. Local/remote B4 branch cleanup is part of the post-merge hygiene for this heartbeat.
+- Stopped because: session usage is 69.0%, near CRITICAL after integration; defer V1 instead of starting another medium task at the edge of the reserve.
+- Next step on resume: refresh usage, then run V1 final verification from current `master` if session usage is comfortably below 70%.

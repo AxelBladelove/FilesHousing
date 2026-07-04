@@ -29,13 +29,13 @@ Base branch: `master`
   - Perf notes: one scan request per disk, cached scan result in frontend state, no repeated filesystem calls during canvas interaction.
   - Status: merged via PR #3 at `99bf215`; review recorded in `.aloop/reviews/B3.md`.
 
-- [ ] B4 - Implement safe backend actions and Explorer integration
+- [x] B4 - Implement safe backend actions and Explorer integration
   - Size: M
   - Effort tier: medium
   - Dependencies: B2
   - Parallel-ok: true
   - Perf notes: action queue operates on explicit paths only, preview estimates size from indexed nodes, destructive operations remain confirmable/reviewable.
-  - Status: in flight; launched from `master` at `28facd6` with pending worktree `local:2c112ed7-72c1-4c5e-9293-1cfbcfece7d0`.
+  - Status: merged via PR #4 at `59c530f`; review recorded in `.aloop/reviews/B4.md`.
 
 ## Milestone 2 - Verification and remote integration
 
@@ -45,3 +45,4 @@ Base branch: `master`
   - Dependencies: B3, B4
   - Parallel-ok: false
   - Perf notes: verify Rust build, frontend build, and local app startup without adding long-running scan work to app boot.
+  - Status: ready after B4; defer until session usage leaves the ECONOMY/CRITICAL boundary.
