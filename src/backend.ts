@@ -20,26 +20,6 @@ function mockRoots(): ScanRoot[] {
   }));
 }
 
-function diskFromScanRoot(root: ScanRoot): Disk {
-  const letter = root.path.match(/^([A-Za-z]):/)?.[1]?.toUpperCase() ?? (root.name.charAt(0) || '?');
-  return {
-    letter,
-    label: root.name,
-    totalBytes: root.totalBytes,
-    root: {
-      id: 0,
-      path: root.path,
-      name: root.name,
-      kind: 'dir',
-      cat: 'other',
-      size: 0,
-      days: 0,
-      count: 0,
-      parent: null,
-    },
-  };
-}
-
 export function hasTauriBackend(): boolean {
   return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 }
@@ -79,7 +59,7 @@ export async function loadInitialDisks(): Promise<Disk[]> {
   if (!hasTauriBackend()) return getMockDisks();
   try {
     const roots = await listScanRoots();
-    return roots.length === 0 ? getMockDisks() : roots.map(diskFromScanRoot);
+    return roots.length === 0 ? getMockDisks() : [];
   } catch {
     return getMockDisks();
   }
