@@ -1,6 +1,6 @@
 import '@fontsource-variable/space-grotesk';
 import {
-  hasTauriBackend, listScanRoots, loadInitialDisks, openInExplorer, scanRoot,
+  hasTauriBackend, listScanRoots, loadInitialDisks, openInExplorer, previewCleanup, scanRoot,
 } from './backend';
 import { CityRenderer, drawSkyline } from './city';
 import {
@@ -609,8 +609,18 @@ function renderQueuePanel(panel: HTMLElement): void {
   panel.querySelectorAll<HTMLElement>('.q-x').forEach(b =>
     b.addEventListener('click', () => { state.queue.splice(Number(b.dataset.i), 1); emit(); }));
   panel.querySelector('.q-clear')!.addEventListener('click', () => { state.queue = []; emit(); });
-  panel.querySelector('.q-run')!.addEventListener('click', () =>
-    flashNote('Preview build. The deletion flow ships with the backend, recycle-bin first and always reviewable.'));
+  panel.querySelector('.q-run')!.addEventListener('click', () => {
+    const items = state.queue.map(q => ({
+      path: q.node.path ?? nodePath(q.node),
+      estimatedBytes: q.node.size,
+    }));
+    void previewCleanup(items)
+      .then(summary => {
+        const skipped = summary.skippedCount ? ` ${summary.skippedCount} item(s) need review.` : '';
+        flashNote(`${fmtBytes(summary.reclaimableBytes)} validated for recovery.${skipped} No files were changed.`);
+      })
+      .catch(() => flashNote('Could not validate this cleanup queue. No files were changed.'));
+  });
 }
 
 // -------------------------------------------------------------- filters UI

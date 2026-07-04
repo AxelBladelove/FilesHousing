@@ -1,8 +1,6 @@
+mod commands;
 mod models;
 mod scanner;
-
-#[cfg(not(test))]
-mod commands;
 
 #[cfg(not(test))]
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -12,6 +10,7 @@ pub fn run() {
             commands::list_scan_roots,
             commands::scan_root,
             commands::open_path_in_explorer,
+            commands::preview_cleanup,
         ])
         .run(tauri::generate_context!())
         .expect("failed to run FilesHousing");

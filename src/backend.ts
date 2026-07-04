@@ -1,5 +1,12 @@
 import { buildDisks } from './mockData';
-import { hydrateDisk, type BackendDisk, type Disk, type ScanRoot } from './types';
+import {
+  hydrateDisk,
+  type BackendDisk,
+  type CleanupPreviewItem,
+  type CleanupPreviewSummary,
+  type Disk,
+  type ScanRoot,
+} from './types';
 
 type InvokeFn = <T>(cmd: string, args?: Record<string, unknown>) => Promise<T>;
 
@@ -53,6 +60,20 @@ export async function openInExplorer(path: string): Promise<void> {
   const invoke = await tauriInvoke();
   if (!invoke) return;
   await invoke('open_path_in_explorer', { path });
+}
+
+export async function previewCleanup(items: CleanupPreviewItem[]): Promise<CleanupPreviewSummary> {
+  const invoke = await tauriInvoke();
+  if (!invoke) {
+    return {
+      reviewedCount: items.length,
+      acceptedCount: items.length,
+      skippedCount: 0,
+      reclaimableBytes: items.reduce((total, item) => total + item.estimatedBytes, 0),
+      skipped: [],
+    };
+  }
+  return invoke<CleanupPreviewSummary>('preview_cleanup', { items });
 }
 
 export async function loadInitialDisks(): Promise<Disk[]> {
