@@ -658,7 +658,7 @@ fn drive_letter(path: &Path) -> Option<String> {
 
 #[cfg(not(windows))]
 fn drive_letter(path: &Path) -> Option<String> {
-    let text = path.to_string_lossy();
+    let text = strip_verbatim_prefix(&path.to_string_lossy());
     let bytes = text.as_bytes();
     if bytes.len() >= 2 && bytes[1] == b':' && bytes[0].is_ascii_alphabetic() {
         Some((bytes[0] as char).to_ascii_uppercase().to_string())
@@ -668,7 +668,17 @@ fn drive_letter(path: &Path) -> Option<String> {
 }
 
 fn path_to_string(path: &Path) -> String {
-    path.to_string_lossy().into_owned()
+    strip_verbatim_prefix(&path.to_string_lossy()).into_owned()
+}
+
+fn strip_verbatim_prefix(path: &str) -> std::borrow::Cow<'_, str> {
+    if let Some(rest) = path.strip_prefix(r"\\?\UNC\") {
+        std::borrow::Cow::Owned(format!(r"\\{rest}"))
+    } else if let Some(rest) = path.strip_prefix(r"\\?\") {
+        std::borrow::Cow::Borrowed(rest)
+    } else {
+        std::borrow::Cow::Borrowed(path)
+    }
 }
 
 fn path_eq(left: &str, right: &str) -> bool {
@@ -838,5 +848,17 @@ mod tests {
         let missing = env::temp_dir().join("fileshousing_missing_scan_root");
         let result = scan_root(Some(missing.to_string_lossy().into_owned()));
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn verbatim_windows_paths_are_serialized_for_ui_actions() {
+        assert_eq!(
+            strip_verbatim_prefix(r"\\?\C:\Users\Axel").as_ref(),
+            r"C:\Users\Axel"
+        );
+        assert_eq!(
+            strip_verbatim_prefix(r"\\?\UNC\server\share").as_ref(),
+            r"\\server\share"
+        );
     }
 }
