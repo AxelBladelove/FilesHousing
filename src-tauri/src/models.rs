@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-#[derive(Debug, Clone, Copy, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[allow(dead_code)]
 #[serde(rename_all = "lowercase")]
 pub enum Cat {
@@ -17,7 +17,7 @@ pub enum Cat {
     Other,
 }
 
-#[derive(Debug, Clone, Copy, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[allow(dead_code)]
 #[serde(rename_all = "lowercase")]
 pub enum FsNodeKind {
