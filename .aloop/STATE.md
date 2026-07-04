@@ -4,8 +4,8 @@
 - Brief: `fileshousing_brief.md`
 - Base branch: `master`
 - Baseline usage: session 32.0%, weekly 10.0%, stale 0.2 min, source codex-session-log
-- Band: ECONOMY
-- Next step: run V1 final verification after usage resets enough for a medium task.
+- Band: CRUISE
+- Next step: aloop complete; no remaining planned tasks.
 
 | iter | time | band | session% | weekly% | did | next |
 |---|---|---:|---:|---:|---|---|
@@ -18,6 +18,7 @@
 | 6 | 2026-07-04T01:36:45-04:00 | CRUISE | 38.0 | 40.0 | integrated B3 via PR #3; frontend now lists roots, scans selected root once, caches result, and preserves paths | launch B4 |
 | 7 | 2026-07-04T01:40:14-04:00 | ECONOMY | 47.0 | 41.0 | launched B4 worktree thread for safe backend actions and Explorer integration | collect B4 result |
 | 8 | 2026-07-04T02:13:18-04:00 | ECONOMY | 69.0 | 45.0 | integrated B4 via PR #4; safe action validation, Explorer opening, and cleanup preview landed | defer V1 until session reset |
+| 9 | 2026-07-04T06:11:05-04:00 | CRUISE | 6.0 | 46.0 | completed V1 final verification and browser smoke on current `master` | complete |
 
 ## HANDOFF 2026-07-03T14:58:40-04:00
 
@@ -83,3 +84,12 @@
 - Cleanup: B4 thread archived. Local/remote B4 branch cleanup is part of the post-merge hygiene for this heartbeat.
 - Stopped because: session usage is 69.0%, near CRITICAL after integration; defer V1 instead of starting another medium task at the edge of the reserve.
 - Next step on resume: refresh usage, then run V1 final verification from current `master` if session usage is comfortably below 70%.
+
+## COMPLETE 2026-07-04T06:11:05-04:00
+
+- V1 final verification completed on current `master` at `828c1db`.
+- Verification passed: `cargo fmt --check`, `cargo check`, `cargo test --lib --no-run`, and `bun run build`.
+- Known limitation remains: `cargo test --lib -- --nocapture` compiles but the generated Windows GNU/Tauri test executable fails to launch with `STATUS_ENTRYPOINT_NOT_FOUND`.
+- Browser smoke passed through Vite on `127.0.0.1:5179` with Edge/Playwright: 2 mock disk cards rendered, browser mock fallback shown, first disk opened the map, canvas was visible, and readout showed `C: System`.
+- Browser smoke note: one static 404 was observed, consistent with the existing favicon/static-resource warning; no app runtime errors were observed.
+- All planned tasks are complete. No task worktrees or task branches remain open.

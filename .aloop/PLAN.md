@@ -39,10 +39,10 @@ Base branch: `master`
 
 ## Milestone 2 - Verification and remote integration
 
-- [ ] V1 - Build, smoke test, and remote PR integration
+- [x] V1 - Build, smoke test, and remote PR integration
   - Size: M
   - Effort tier: medium
   - Dependencies: B3, B4
   - Parallel-ok: false
   - Perf notes: verify Rust build, frontend build, and local app startup without adding long-running scan work to app boot.
-  - Status: ready after B4; defer until session usage leaves the ECONOMY/CRITICAL boundary.
+  - Status: complete; final checks and browser smoke passed on `master` at `828c1db`.
