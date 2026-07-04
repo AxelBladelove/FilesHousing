@@ -27,7 +27,7 @@ Base branch: `master`
   - Dependencies: B2
   - Parallel-ok: false
   - Perf notes: one scan request per disk, cached scan result in frontend state, no repeated filesystem calls during canvas interaction.
-  - Status: ready, deferred while session usage is CRITICAL.
+  - Status: launched in Codex worktree heartbeat run at `2026-07-04T01:02:11-04:00`; pending worktree `local:9c9d36a6-7167-44f2-9048-105ed785a195`.
 
 - [ ] B4 - Implement safe backend actions and Explorer integration
   - Size: M

@@ -5,7 +5,7 @@
 - Base branch: `master`
 - Baseline usage: session 32.0%, weekly 10.0%, stale 0.2 min, source codex-session-log
 - Band: CRUISE
-- Next step: resume with B2 when the session window leaves CRITICAL.
+- Next step: collect B3 result from the worktree thread when it finishes.
 
 | iter | time | band | session% | weekly% | did | next |
 |---|---|---:|---:|---:|---|---|
@@ -14,6 +14,7 @@
 | 2 | 2026-07-03T15:33:46-04:00 | WRAP | 92.0 | 19.0 | heartbeat resumed but usage was still above WRAP threshold | reschedule after reset |
 | 3 | 2026-07-03T19:50:45-04:00 | CRUISE | ~0.0 | 21.0 | launched B2 worktree thread; usage snapshot reported likely_reset true | collect B2 result |
 | 4 | 2026-07-03T20:08:43-04:00 | CRITICAL | 77.0 | 33.0 | integrated B2 via PR #2; real Windows-first scanner and bounded aggregation landed at `36a111c` | defer B3/B4 until session leaves CRITICAL |
+| 5 | 2026-07-04T01:02:11-04:00 | ECONOMY | ~0.0 | 34.0 | launched B3 worktree thread; usage snapshot was stale but `likely_reset: true`, so downgraded to ECONOMY | collect B3 result |
 
 ## HANDOFF 2026-07-03T14:58:40-04:00
 
@@ -48,3 +49,10 @@
 - Verification: `cargo fmt --check`, `cargo check`, `cargo check --tests`, `cargo test --lib -- --nocapture`, and `bun run build` passed. Full `cargo test` still hits the existing Windows GNU/Tauri cdylib linker issue before scanner tests.
 - In flight: none. Duplicate B2 threads were archived; Git worktrees/branches were pruned. Some empty app-owned worktree folders may remain locked until the app releases its handles, but they contain no Git work or uncommitted files.
 - Next step on resume: refresh usage; if below 70%, launch B3 at medium effort to connect the frontend to backend data with mock fallback.
+
+## IN FLIGHT 2026-07-04T01:02:11-04:00
+
+- B3 launched in a Codex worktree thread from current `master` at `ee32f81`.
+- Pending worktree id: `local:9c9d36a6-7167-44f2-9048-105ed785a195`.
+- Usage note: usage script returned raw session 86.0%, stale 288.6 min, `likely_reset: true`, reset in 0 min; treated as reset and downgraded one band to ECONOMY because the snapshot was stale.
+- Next step: collect B3 result block, review diff, run checks, then push/PR/merge if clean.
