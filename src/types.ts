@@ -5,6 +5,8 @@ export type Cat =
 
 export interface FsNode {
   id: number;
+  /** absolute backend path when this node came from a live scan */
+  path?: string;
   name: string;
   kind: 'dir' | 'file' | 'rest';
   cat: Cat;
@@ -67,6 +69,7 @@ export interface ScanRoot {
 function hydrateNode(node: BackendFsNode, parent: FsNode | null): FsNode {
   const out: FsNode = {
     id: node.id,
+    path: node.path,
     name: node.name,
     kind: node.kind,
     cat: node.cat,
