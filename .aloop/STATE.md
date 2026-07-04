@@ -4,8 +4,8 @@
 - Brief: `fileshousing_brief.md`
 - Base branch: `master`
 - Baseline usage: session 32.0%, weekly 10.0%, stale 0.2 min, source codex-session-log
-- Band: CRUISE
-- Next step: launch B4 if usage permits, otherwise defer.
+- Band: ECONOMY
+- Next step: collect B4 result from pending worktree `local:2c112ed7-72c1-4c5e-9293-1cfbcfece7d0`.
 
 | iter | time | band | session% | weekly% | did | next |
 |---|---|---:|---:|---:|---|---|
@@ -16,6 +16,7 @@
 | 4 | 2026-07-03T20:08:43-04:00 | CRITICAL | 77.0 | 33.0 | integrated B2 via PR #2; real Windows-first scanner and bounded aggregation landed at `36a111c` | defer B3/B4 until session leaves CRITICAL |
 | 5 | 2026-07-04T01:02:11-04:00 | ECONOMY | ~0.0 | 34.0 | launched B3 worktree thread; usage snapshot was stale but `likely_reset: true`, so downgraded to ECONOMY | collect B3 result |
 | 6 | 2026-07-04T01:36:45-04:00 | CRUISE | 38.0 | 40.0 | integrated B3 via PR #3; frontend now lists roots, scans selected root once, caches result, and preserves paths | launch B4 |
+| 7 | 2026-07-04T01:40:14-04:00 | ECONOMY | 47.0 | 41.0 | launched B4 worktree thread for safe backend actions and Explorer integration | collect B4 result |
 
 ## HANDOFF 2026-07-03T14:58:40-04:00
 
@@ -65,3 +66,10 @@
 - Verification: `bun run build`, `cargo check`, `cargo test --lib -- --nocapture`, and a Vite/Edge browser smoke passed.
 - Cleanup: B3 thread archived; B3 local/remote branches pruned. The app-owned empty worktree folder may remain locked until Codex releases its handle, but it contains no Git work or uncommitted files.
 - Next step: launch B4 from current `master` if usage remains below ECONOMY/CRITICAL limits.
+
+## IN FLIGHT 2026-07-04T01:40:14-04:00
+
+- B4 launched in a Codex worktree thread from current `master` at `28facd6`.
+- Pending worktree id: `local:2c112ed7-72c1-4c5e-9293-1cfbcfece7d0`.
+- Usage: session 47.0% (ECONOMY, resets in 261 min), weekly 41.0% (resets in 8507 min), stale 0.1 min.
+- Next step: collect B4 result block, review diff, run checks, then push/PR/merge if clean.

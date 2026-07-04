@@ -35,7 +35,7 @@ Base branch: `master`
   - Dependencies: B2
   - Parallel-ok: true
   - Perf notes: action queue operates on explicit paths only, preview estimates size from indexed nodes, destructive operations remain confirmable/reviewable.
-  - Status: ready; prompt refreshed after B3 integration.
+  - Status: in flight; launched from `master` at `28facd6` with pending worktree `local:2c112ed7-72c1-4c5e-9293-1cfbcfece7d0`.
 
 ## Milestone 2 - Verification and remote integration
 
