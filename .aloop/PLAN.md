@@ -21,13 +21,13 @@ Base branch: `master`
   - Perf notes: iterative traversal, bounded metadata work, top-N aggregation for visualization, avoid retaining raw per-file detail beyond what the UI needs.
   - Status: merged via PR #2 at `36a111c`; review recorded in `.aloop/reviews/B2.md`.
 
-- [ ] B3 - Connect frontend to backend with mock fallback
+- [x] B3 - Connect frontend to backend with mock fallback
   - Size: M
   - Effort tier: medium
   - Dependencies: B2
   - Parallel-ok: false
   - Perf notes: one scan request per disk, cached scan result in frontend state, no repeated filesystem calls during canvas interaction.
-  - Status: launched in Codex worktree heartbeat run at `2026-07-04T01:02:11-04:00`; pending worktree `local:9c9d36a6-7167-44f2-9048-105ed785a195`.
+  - Status: merged via PR #3 at `99bf215`; review recorded in `.aloop/reviews/B3.md`.
 
 - [ ] B4 - Implement safe backend actions and Explorer integration
   - Size: M
@@ -35,6 +35,7 @@ Base branch: `master`
   - Dependencies: B2
   - Parallel-ok: true
   - Perf notes: action queue operates on explicit paths only, preview estimates size from indexed nodes, destructive operations remain confirmable/reviewable.
+  - Status: ready; prompt refreshed after B3 integration.
 
 ## Milestone 2 - Verification and remote integration
 
