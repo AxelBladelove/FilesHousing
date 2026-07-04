@@ -1,22 +1,35 @@
 import '@fontsource-variable/space-grotesk';
+import {
+  hasTauriBackend, listScanRoots, loadInitialDisks, openInExplorer, scanRoot,
+} from './backend';
 import { CityRenderer, drawSkyline } from './city';
-import { buildDisks } from './mockData';
 import {
   emit, filtersActive, inQueue, queueTotal, recomputeVisibility,
   state, subscribe, toggleQueue,
 } from './state';
 import {
   CAT_COLOR, CAT_LABEL, fmtAge, fmtBytes, nodePath,
-  type Cat, type Disk, type FsNode,
+  type Cat, type Disk, type FsNode, type ScanRoot,
 } from './types';
 
 const app = document.getElementById('app')!;
-const disks = buildDisks();
 let city: CityRenderer | null = null;
 let searchIndex: { n: FsNode; l: string }[] = [];
+let diskChoices: DiskChoice[] = [];
+const scanCache = new Map<string, Promise<Disk>>();
+const liveBackend = hasTauriBackend();
 
 const GB = 1024 ** 3;
 const MB = 1024 ** 2;
+
+interface DiskChoice {
+  key: string;
+  name: string;
+  path: string;
+  totalBytes: number;
+  disk?: Disk;
+  live: boolean;
+}
 
 function h(html: string): HTMLElement {
   const t = document.createElement('template');
@@ -34,23 +47,129 @@ function escapeHtml(s: string): string {
 
 // ------------------------------------------------------------- disk screen
 
+function choiceFromDisk(disk: Disk): DiskChoice {
+  const path = disk.root.path ?? `${disk.letter}:`;
+  return {
+    key: path,
+    name: `${disk.letter}: ${disk.label}`,
+    path,
+    totalBytes: disk.totalBytes,
+    disk,
+    live: false,
+  };
+}
+
+function choiceFromRoot(root: ScanRoot): DiskChoice {
+  return {
+    key: root.path,
+    name: root.name,
+    path: root.path,
+    totalBytes: root.totalBytes,
+    live: true,
+  };
+}
+
+async function loadDiskChoices(): Promise<DiskChoice[]> {
+  if (liveBackend) {
+    try {
+      const roots = await listScanRoots();
+      if (roots.length) return roots.map(choiceFromRoot);
+    } catch {
+      flashNote('Could not list drives from the backend, showing mock data instead.');
+    }
+  }
+  const disks = await loadInitialDisks();
+  return disks.map(choiceFromDisk);
+}
+
+function renderDiskLoading(): void {
+  city?.destroy(); city = null;
+  app.innerHTML = '';
+  app.append(h(`
+    <div class="screen disks-screen">
+      <div class="hero">
+        <div class="wordmark"><i></i>FilesHousing</div>
+        <h1>Your disk is<br>a city.</h1>
+        <p>Loading available places to scan.</p>
+      </div>
+      <div class="disk-side">
+        <div class="disk-cards"></div>
+        <div class="foot-note">Preparing disk selection</div>
+      </div>
+    </div>`));
+}
+
+function drawRootPlaceholder(canvas: HTMLCanvasElement, choice: DiskChoice): void {
+  const ctx = canvas.getContext('2d')!;
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  for (let i = 0; i < 18; i++) {
+    const x = 12 + i * 16;
+    const height = 24 + ((choice.key.charCodeAt(i % choice.key.length) + i * 13) % 82);
+    ctx.fillRect(x, h - height - 14, 10, height);
+  }
+}
+
+async function enterDisk(choice: DiskChoice): Promise<void> {
+  let disk = choice.disk;
+  if (!disk) {
+    renderScanPending(choice);
+    let pending = scanCache.get(choice.key);
+    if (!pending) {
+      pending = scanRoot(choice.path);
+      scanCache.set(choice.key, pending);
+    }
+    try {
+      disk = await pending;
+      choice.disk = disk;
+    } catch {
+      scanCache.delete(choice.key);
+      flashNote('Scan failed. Returning to disk selection.');
+      const fallback = (await loadInitialDisks())[0];
+      if (!fallback) return renderDisks();
+      disk = fallback;
+    }
+  }
+  renderMap(disk, choice.live);
+}
+
+function renderScanPending(choice: DiskChoice): void {
+  city?.destroy(); city = null;
+  app.innerHTML = '';
+  app.append(h(`
+    <div class="screen disks-screen">
+      <div class="hero">
+        <div class="wordmark"><i></i>FilesHousing</div>
+        <h1>Scanning<br>${escapeHtml(choice.name)}.</h1>
+        <p>The backend is preparing one bounded map for this selected root.</p>
+      </div>
+      <div class="disk-side">
+        <div class="disk-cards"></div>
+        <div class="foot-note">Waiting for completed scan data</div>
+      </div>
+    </div>`));
+}
+
 function renderDisks(): void {
   city?.destroy(); city = null;
-  const rows = disks.map((d, i) => {
-    const used = d.root.size, pct = Math.round((used / d.totalBytes) * 100);
+  const rows = diskChoices.map((choice, i) => {
+    const d = choice.disk;
+    const used = d?.root.size ?? 0;
+    const pct = d ? Math.round((used / d.totalBytes) * 100) : 0;
     return `
       <button class="disk-card" data-i="${i}" style="animation-delay:${160 + i * 120}ms">
         <canvas class="disk-sky" width="300" height="150"></canvas>
         <div class="disk-info">
           <div class="disk-head">
-            <span class="disk-letter">${d.letter}:</span>
-            <span class="disk-label">${d.label}</span>
-            <span class="disk-pct">${pct}% full</span>
+            <span class="disk-letter">${escapeHtml(choice.name.split(' ')[0] ?? choice.name)}</span>
+            <span class="disk-label">${escapeHtml(choice.name.replace(choice.name.split(' ')[0] ?? '', '').trim() || choice.path)}</span>
+            <span class="disk-pct">${d ? `${pct}% full` : 'ready'}</span>
           </div>
           <div class="disk-bar"><i style="width:${pct}%" class="${pct > 85 ? 'hot' : ''}"></i></div>
-          <div class="disk-stats"><span>${fmtBytes(used)} used</span><span>${fmtBytes(d.totalBytes - used)} free</span></div>
+          <div class="disk-stats"><span>${d ? `${fmtBytes(used)} used` : 'Scan on entry'}</span><span>${d ? `${fmtBytes(d.totalBytes - used)} free` : fmtBytes(choice.totalBytes)}</span></div>
         </div>
-        <div class="disk-enter">Enter the city<span>→</span></div>
+        <div class="disk-enter">${d ? 'Enter the city' : 'Scan and enter'}<span>→</span></div>
       </button>`;
   }).join('');
 
@@ -64,20 +183,22 @@ function renderDisks(): void {
       </div>
       <div class="disk-side">
         <div class="disk-cards">${rows}</div>
-        <div class="foot-note">Preview build with mock data</div>
+        <div class="foot-note">${liveBackend ? 'Live backend: scans run only after you choose a root' : 'Browser preview with mock data'}</div>
       </div>
     </div>`));
 
   app.querySelectorAll<HTMLElement>('.disk-card').forEach(el => {
-    const d = disks[Number(el.dataset.i)];
-    drawSkyline(el.querySelector('canvas')!, d.root);
-    el.addEventListener('click', () => renderMap(d));
+    const choice = diskChoices[Number(el.dataset.i)];
+    const canvas = el.querySelector<HTMLCanvasElement>('canvas')!;
+    if (choice.disk) drawSkyline(canvas, choice.disk.root);
+    else drawRootPlaceholder(canvas, choice);
+    el.addEventListener('click', () => void enterDisk(choice));
   });
 }
 
 // ---------------------------------------------- map screen (+ build scan)
 
-function renderMap(disk: Disk): void {
+function renderMap(disk: Disk, liveScan: boolean): void {
   state.disk = disk;
   state.screen = 'map';
   state.selection = null; state.focus = disk.root;
@@ -124,9 +245,9 @@ function renderMap(disk: Disk): void {
 
       <div class="scan-overlay">
         <div class="scan-block">
-          <div class="scan-title">Constructing <b>${disk.letter}: ${disk.label}</b></div>
+          <div class="scan-title">${liveScan ? 'Rendering completed scan for' : 'Constructing'} <b>${disk.letter}: ${disk.label}</b></div>
           <div class="scan-pct">0</div>
-          <div class="scan-stats"><span class="s-files">0</span> files<i></i><span class="s-bytes">0 GB</span> indexed</div>
+          <div class="scan-stats"><span class="s-files">0</span> files<i></i><span class="s-bytes">0 GB</span> mapped</div>
           <div class="scan-path">&nbsp;</div>
         </div>
       </div>
@@ -152,7 +273,7 @@ function renderMap(disk: Disk): void {
   });
   city.attachMinimap(el.querySelector<HTMLCanvasElement>('.minimap')!);
   city.setRoot(disk.root, true);
-  runConstruction(el, disk);
+  runConstruction(el, disk, liveScan);
 
   el.querySelector('.back')!.addEventListener('click', () => {
     if (state.focus && state.focus !== disk.root) {
@@ -180,22 +301,15 @@ function renderMap(disk: Disk): void {
   syncReadout(null);
 }
 
-function runConstruction(el: HTMLElement, disk: Disk): void {
+function runConstruction(el: HTMLElement, disk: Disk, liveScan: boolean): void {
   const overlay = el.querySelector<HTMLElement>('.scan-overlay')!;
-  const paths: string[] = [];
-  const collect = (n: FsNode) => {
-    if (paths.length > 300) return;
-    if (!n.children) { if (Math.random() < 0.3) paths.push(nodePath(n)); return; }
-    for (const c of n.children) collect(c);
-  };
-  collect(disk.root);
 
   const dur = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 2300;
   const t0 = performance.now();
   const pctEl = overlay.querySelector('.scan-pct')!;
   const fEl = overlay.querySelector('.s-files')!, bEl = overlay.querySelector('.s-bytes')!;
   const pathEl = overlay.querySelector('.scan-path')!;
-  let lastPath = 0;
+  pathEl.textContent = liveScan ? 'Scan complete; drawing the city' : 'Drawing preview city';
 
   const step = (now: number) => {
     const p = dur === 0 ? 1 : Math.min(1, (now - t0) / dur);
@@ -204,10 +318,6 @@ function runConstruction(el: HTMLElement, disk: Disk): void {
     pctEl.textContent = String(Math.round(e * 100));
     fEl.textContent = Math.round(e * disk.root.count).toLocaleString();
     bEl.textContent = fmtBytes(e * disk.root.size);
-    if (now - lastPath > 80 && p < 1) {
-      pathEl.textContent = paths[Math.floor(Math.random() * paths.length)] ?? '';
-      lastPath = now;
-    }
     if (p < 1) requestAnimationFrame(step);
     else {
       overlay.classList.add('done');
@@ -428,7 +538,7 @@ function syncDetails(root: Element): void {
     <button class="d-close" title="Close">×</button>
     <div class="d-kind">${catDot(n.cat)}${isDir ? 'District' : CAT_LABEL[n.cat]}</div>
     <div class="d-name">${escapeHtml(n.name)}</div>
-    <div class="d-path">${escapeHtml(nodePath(n))}</div>
+    <div class="d-path">${escapeHtml(n.path ?? nodePath(n))}</div>
     <div class="d-grid">
       <div><b>${fmtBytes(n.size)}</b><span>size</span></div>
       <div><b>${share < 0.01 ? '<0.01' : share.toFixed(share < 1 ? 2 : 1)}%</b><span>of disk</span></div>
@@ -444,7 +554,13 @@ function syncDetails(root: Element): void {
   panel.querySelector('.d-close')!.addEventListener('click', () => { state.selection = null; emit(); });
   panel.querySelector('.d-zoom')?.addEventListener('click', () => { state.focus = n; city!.flyTo(n); emit(); });
   panel.querySelector('.d-queue')!.addEventListener('click', () => toggleQueue(n));
-  panel.querySelector('.d-open')!.addEventListener('click', () => flashNote('Preview build. Explorer integration lands with the Rust backend.'));
+  panel.querySelector('.d-open')!.addEventListener('click', () => {
+    if (!liveBackend || !n.path) {
+      flashNote('Preview build. Explorer integration lands with the Rust backend.');
+      return;
+    }
+    void openInExplorer(n.path).catch(() => flashNote('Could not open this path in Explorer.'));
+  });
   panel.querySelectorAll<HTMLElement>('.d-child').forEach(b =>
     b.addEventListener('click', () => {
       const c = n.children!.find(x => x.id === Number(b.dataset.id));
@@ -544,4 +660,10 @@ function flashNote(text: string): void {
   noteTimer = window.setTimeout(() => n.remove(), 3200);
 }
 
-renderDisks();
+async function boot(): Promise<void> {
+  renderDiskLoading();
+  diskChoices = await loadDiskChoices();
+  renderDisks();
+}
+
+void boot();
