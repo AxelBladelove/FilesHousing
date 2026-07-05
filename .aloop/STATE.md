@@ -5,7 +5,7 @@
 - Base branch: `master`
 - Baseline usage: session 32.0%, weekly 10.0%, stale 0.2 min, source codex-session-log
 - Band: CRUISE
-- Next step: aloop complete; no remaining planned tasks.
+- Next step: collect B5 result, review diff, run checks, then push/PR/merge if clean.
 
 | iter | time | band | session% | weekly% | did | next |
 |---|---|---:|---:|---:|---|---|
@@ -19,6 +19,7 @@
 | 7 | 2026-07-04T01:40:14-04:00 | ECONOMY | 47.0 | 41.0 | launched B4 worktree thread for safe backend actions and Explorer integration | collect B4 result |
 | 8 | 2026-07-04T02:13:18-04:00 | ECONOMY | 69.0 | 45.0 | integrated B4 via PR #4; safe action validation, Explorer opening, and cleanup preview landed | defer V1 until session reset |
 | 9 | 2026-07-04T06:11:05-04:00 | CRUISE | 6.0 | 46.0 | completed V1 final verification and browser smoke on current `master` | complete |
+| 10 | 2026-07-05T16:10:42-04:00 | CRUISE | 14.0 | 67.0 | launched B5 actionability layer worktree thread from current `master`; new backend semantic brief received as attachment | collect B5 result |
 
 ## HANDOFF 2026-07-03T14:58:40-04:00
 
@@ -93,3 +94,10 @@
 - Browser smoke passed through Vite on `127.0.0.1:5179` with Edge/Playwright: 2 mock disk cards rendered, browser mock fallback shown, first disk opened the map, canvas was visible, and readout showed `C: System`.
 - Browser smoke note: one static 404 was observed, consistent with the existing favicon/static-resource warning; no app runtime errors were observed.
 - All planned tasks are complete. No task worktrees or task branches remain open.
+
+## IN FLIGHT 2026-07-05T16:10:42-04:00
+
+- B5 launched from current `master` in remote mode.
+- Usage: session 14.0% (CRUISE, resets in 259 min), weekly 67.0% (resets in 6196 min), stale 0.1 min.
+- Brief: attached backend semantic actionability layer task, scoped to Rust/Tauri backend and shared TypeScript DTOs.
+- Next step: collect B5 result block, review diff, run `cargo test`/`bun run build`, then push/PR/merge if clean.

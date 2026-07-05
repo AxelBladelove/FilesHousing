@@ -46,3 +46,21 @@ Base branch: `master`
   - Parallel-ok: false
   - Perf notes: verify Rust build, frontend build, and local app startup without adding long-running scan work to app boot.
   - Status: complete; final checks and browser smoke passed on `master` at `828c1db`.
+
+## Milestone 3 - Backend semantic actionability layer
+
+- [ ] B5 - Add scanner actionability metadata and safe action validation
+  - Size: L
+  - Effort tier: high
+  - Dependencies: B2, B4
+  - Parallel-ok: false
+  - Perf notes: classify nodes exactly once during existing traversal, propagate cheap semantic context through recursion, use child-name hints already collected by `read_dir`, and avoid heavyweight dependencies or extra filesystem passes.
+  - Status: launched in Codex worktree thread on 2026-07-05.
+
+- [ ] V2 - Verify semantic actionability integration
+  - Size: S
+  - Effort tier: low
+  - Dependencies: B5
+  - Parallel-ok: false
+  - Perf notes: run focused Rust tests first, then `cargo test`/`bun run build`; preserve the known Windows GNU/Tauri test-launch caveat if it still reproduces.
+  - Status: pending B5.
